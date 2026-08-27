@@ -41,7 +41,7 @@ HangulCite = {
 		this.rootURI = rootURI;
 		this.initialized = true;
 
-		// 환경설정 탭 스크립트에서 호출할 수 있도록 노출한다
+		// 설정 탭 스크립트에서 호출할 수 있도록 노출한다
 		Zotero.HangulCite = this;
 	},
 
@@ -109,7 +109,7 @@ HangulCite = {
 	},
 
 	/**
-	 * 설치된 스타일 목록을 하위 메뉴로 단다. 환경설정을 열지 않고
+	 * 설치된 스타일 목록을 하위 메뉴로 단다. 설정을 열지 않고
 	 * 이번 한 번만 다른 양식으로 뽑고 싶을 때 쓴다.
 	 * 사용자가 스타일을 추가할 수 있으므로 열 때마다 다시 채운다.
 	 */
@@ -155,7 +155,7 @@ HangulCite = {
 
 	// --- Citation ---------------------------------------------------------
 
-	/** 인용 스타일은 Zotero 환경설정의 빠른 복사 설정을 그대로 따른다. */
+	/** 인용 스타일은 Zotero 설정의 빠른 복사 설정을 그대로 따른다. */
 	getStyleID() {
 		const setting = Zotero.Prefs.get('export.quickCopy.setting') || '';
 		const match = /^bibliography(?:\/[^=]*)?=(.+)$/.exec(setting);
@@ -357,7 +357,7 @@ HangulCite = {
 	// --- Preferences pane -------------------------------------------------
 
 	/**
-	 * 환경설정 탭의 동작을 붙인다. 탭의 인라인 onload 는 환경설정 창 스코프에서
+	 * 설정 탭의 동작을 붙인다. 탭의 인라인 onload 는 설정 창 스코프에서
 	 * 실행되므로, 거기서 닿을 수 있는 Zotero.HangulCite 를 통해 호출된다.
 	 * @param {Element} root - 탭의 최상위 요소
 	 */
