@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" default-locale="en-US" demote-non-dropping-particle="sort-only" page-range-format="expanded">
+  <info>
+    <title>Journal of KIISE</title>
+    <title-short>JOK</title-short>
+    <id>http://www.zotero.org/styles/journal-of-kiise</id>
+    <link href="http://www.zotero.org/styles/journal-of-kiise" rel="self"/>
+    <link href="https://www.kiise.or.kr/academy/main/getContent.fa?content_no=17&amp;MENU_ID=060200" rel="documentation"/>
+    <author>
+      <name>shininvvs</name>
+      <uri>https://github.com/shininvvs</uri>
+    </author>
+    <category citation-format="numeric"/>
+    <category field="engineering"/>
+    <issn>2383-630X</issn>
+    <eissn>2383-6296</eissn>
+    <updated>2026-08-27T00:00:00+00:00</updated>
+    <rights license="http://creativecommons.org/licenses/by-sa/3.0/">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights>
+  </info>
+  <macro name="author">
+    <names variable="author">
+      <name initialize-with=". " and="text" delimiter=", " delimiter-precedes-last="always"/>
+      <label form="short" prefix=", "/>
+      <substitute>
+        <names variable="editor"/>
+        <names variable="translator"/>
+      </substitute>
+    </names>
+  </macro>
+  <macro name="title">
+    <choose>
+      <if type="book thesis report" match="any">
+        <text variable="title" font-style="italic"/>
+      </if>
+      <else>
+        <text variable="title" quotes="true"/>
+      </else>
+    </choose>
+  </macro>
+  <macro name="container">
+    <text variable="container-title" font-style="italic"/>
+  </macro>
+  <macro name="edition">
+    <choose>
+      <if is-numeric="edition">
+        <group delimiter=" ">
+          <number variable="edition" form="ordinal"/>
+          <text term="edition" form="short" text-case="capitalize-first"/>
+        </group>
+      </if>
+      <else>
+        <text variable="edition"/>
+      </else>
+    </choose>
+  </macro>
+  <macro name="volume-issue">
+    <group delimiter=", ">
+      <group delimiter=" ">
+        <text term="volume" form="short" text-case="capitalize-first" suffix="."/>
+        <text variable="volume"/>
+      </group>
+      <group delimiter=" ">
+        <text term="issue" form="short" text-case="capitalize-first" suffix="."/>
+        <text variable="issue"/>
+      </group>
+    </group>
+  </macro>
+  <macro name="pages">
+    <group delimiter=" ">
+      <label variable="page" form="short"/>
+      <text variable="page"/>
+    </group>
+  </macro>
+  <macro name="publisher">
+    <group delimiter=", ">
+      <text variable="publisher"/>
+      <text variable="publisher-place"/>
+    </group>
+  </macro>
+  <macro name="issued">
+    <choose>
+      <if type="article-journal article-magazine" match="any">
+        <date variable="issued">
+          <date-part name="month" form="short" suffix=" "/>
+          <date-part name="year"/>
+        </date>
+      </if>
+      <else>
+        <date variable="issued">
+          <date-part name="year"/>
+        </date>
+      </else>
+    </choose>
+  </macro>
+  <macro name="access">
+    <choose>
+      <if type="webpage post post-weblog" match="any">
+        <group delimiter=" ">
+          <text term="online" prefix="[" suffix="]" text-case="capitalize-first"/>
+          <group delimiter=": ">
+            <text term="available at" text-case="capitalize-first"/>
+            <text variable="URL"/>
+          </group>
+        </group>
+      </if>
+      <else-if variable="DOI">
+        <text variable="DOI" prefix="https://doi.org/"/>
+      </else-if>
+    </choose>
+  </macro>
+  <citation collapse="citation-number">
+    <sort>
+      <key variable="citation-number"/>
+    </sort>
+    <layout prefix="[" suffix="]" delimiter="], [">
+      <group delimiter=", ">
+        <text variable="citation-number"/>
+        <text variable="locator"/>
+      </group>
+    </layout>
+  </citation>
+  <bibliography entry-spacing="0" second-field-align="flush">
+    <layout suffix=".">
+      <text variable="citation-number" prefix="[" suffix="]"/>
+      <choose>
+        <if type="book" match="any">
+          <group delimiter=". ">
+            <text macro="author"/>
+            <group delimiter=", ">
+              <text macro="title"/>
+              <text macro="edition"/>
+              <text macro="pages"/>
+            </group>
+            <group delimiter=", ">
+              <text macro="publisher"/>
+              <text macro="issued"/>
+            </group>
+          </group>
+        </if>
+        <else-if type="thesis">
+          <group delimiter=", ">
+            <text macro="author"/>
+            <text macro="title"/>
+            <text variable="genre"/>
+            <text macro="publisher"/>
+            <text macro="issued"/>
+          </group>
+        </else-if>
+        <else-if type="webpage post post-weblog" match="any">
+          <group delimiter=". ">
+            <text macro="author"/>
+            <text macro="title"/>
+            <text macro="access"/>
+          </group>
+        </else-if>
+        <else>
+          <group delimiter=", ">
+            <text macro="author"/>
+            <text macro="title"/>
+            <text macro="container"/>
+            <text macro="volume-issue"/>
+            <text macro="pages"/>
+            <text macro="issued"/>
+            <text macro="access"/>
+          </group>
+        </else>
+      </choose>
+    </layout>
+  </bibliography>
+</style>
