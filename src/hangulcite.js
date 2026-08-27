@@ -23,6 +23,17 @@ HangulCite = {
 		'springer-socpsych-author-date'
 	],
 
+	/**
+	 * 직접 만든 스타일. CSL 저장소에서 온 것이 아니라 id 가 zotero.org 주소가
+	 * 아니므로 따로 둔다.
+	 */
+	OWN_STYLES: [
+		{
+			file: 'korean-author-date',
+			id: 'https://github.com/shininvvs/zotero-plugin/raw/main/styles/korean-author-date.csl'
+		}
+	],
+
 	KOREAN_STYLES: [
 		'journal-of-korean-neurosurgical-society',
 		'journal-of-the-korean-society-of-civil-engineers',
@@ -511,11 +522,27 @@ HangulCite = {
 
 	// --- Bundled styles ---------------------------------------------------
 
-	/** 번들된 국내 학회 스타일 중 이미 설치된 개수 */
+	/** 번들된 스타일 전부를 {파일명, 스타일 id} 로 훑는다 */
+	bundledStyles() {
+		return [
+			...this.OWN_STYLES,
+			...this.PARENT_STYLES.map(file => ({ file, id: this.STYLE_ID_PREFIX + file })),
+			...this.KOREAN_STYLES.map(file => ({ file, id: this.STYLE_ID_PREFIX + file }))
+		];
+	},
+
+	/** 사용자에게 보여줄 스타일(부모 스타일 제외) 중 이미 설치된 개수 */
 	countInstalledStyles() {
-		return this.KOREAN_STYLES
-			.filter(name => !!Zotero.Styles.get(this.STYLE_ID_PREFIX + name))
+		return this.visibleStyles()
+			.filter(({ id }) => !!Zotero.Styles.get(id))
 			.length;
+	},
+
+	visibleStyles() {
+		return [
+			...this.OWN_STYLES,
+			...this.KOREAN_STYLES.map(file => ({ file, id: this.STYLE_ID_PREFIX + file }))
+		];
 	},
 
 	/**
@@ -542,20 +569,20 @@ HangulCite = {
 	async installBundledStyles() {
 		const result = { installed: 0, skipped: 0, failed: [] };
 
-		for (const name of [...this.PARENT_STYLES, ...this.KOREAN_STYLES]) {
-			if (Zotero.Styles.get(this.STYLE_ID_PREFIX + name)) {
+		for (const { file, id } of this.bundledStyles()) {
+			if (Zotero.Styles.get(id)) {
 				result.skipped++;
 				continue;
 			}
 
 			try {
-				const string = await this.readBundledStyle(name);
-				await Zotero.Styles.install({ string }, name, true);
+				const string = await this.readBundledStyle(file);
+				await Zotero.Styles.install({ string }, file, true);
 				result.installed++;
 			}
 			catch (e) {
-				this.log('style install failed: ' + name + ' - ' + e);
-				result.failed.push(name);
+				this.log('style install failed: ' + file + ' - ' + e);
+				result.failed.push(file);
 			}
 		}
 
@@ -582,7 +609,7 @@ HangulCite = {
 
 		const refresh = () => {
 			const installed = this.countInstalledStyles();
-			const total = this.KOREAN_STYLES.length;
+			const total = this.visibleStyles().length;
 			status.value = `${total}개 중 ${installed}개 설치됨`;
 			button.disabled = installed === total;
 		};
