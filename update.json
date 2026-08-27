@@ -1,0 +1,18 @@
+{
+	"addons": {
+		"hangul-cite@shininvvs": {
+			"updates": [
+				{
+					"version": "0.4.1",
+					"update_link": "https://github.com/shininvvs/zotero-plugin/releases/download/v0.4.1/hangul-cite.xpi",
+					"update_hash": "sha256:1e81b3778e8f8701d33d37d1976f9739c66dfe2b837fad3cae6304b56de8d130",
+					"applications": {
+						"zotero": {
+							"strict_min_version": "6.999"
+						}
+					}
+				}
+			]
+		}
+	}
+}

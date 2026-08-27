@@ -111,6 +111,23 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 
 `build/hangul-cite.xpi` 가 생성됩니다.
 
+## 릴리스
+
+`update.json` 이 자동 업데이트의 기준이 됩니다. 새 버전을 낼 때마다
+manifest 와 이 파일을 함께 올려야 하며, 셋이 어긋나면 업데이트가 조용히
+실패합니다.
+
+1. `manifest.json` 의 `version` 을 올린다
+2. `build.ps1` 로 `.xpi` 를 만든다
+3. 해시를 구한다 — `sha256sum build/hangul-cite.xpi`
+4. `update.json` 의 `version`, `update_link` 의 태그, `update_hash` 를 고친다
+5. 커밋하고 `vX.Y.Z` 태그를 붙여 푸시한다
+6. GitHub Releases 에 같은 태그로 릴리스를 만들고 `.xpi` 를 첨부한다
+
+`update_link` 는 릴리스 자산의 주소이므로 태그 이름이 정확해야 합니다.
+Zotero 는 업데이트 확인 시 `maxVersion` 을 `*` 로 강제하므로, 상위 버전
+차단은 `manifest.json` 의 `strict_max_version` 으로만 걸립니다.
+
 ## 개발
 
 Zotero를 개발 모드로 띄우면 플러그인 폴더를 직접 로드할 수 있습니다.
