@@ -3,9 +3,9 @@
 		"hangul-cite@shininvvs": {
 			"updates": [
 				{
-					"version": "0.4.1",
-					"update_link": "https://github.com/shininvvs/zotero-plugin/releases/download/v0.4.1/hangul-cite.xpi",
-					"update_hash": "sha256:949f23a267327fadce0f1d6f5b2b2dbc46a5f6db80ef5d1b67b69a195b7b7d1f",
+					"version": "0.6.4",
+					"update_link": "https://github.com/shininvvs/zotero-plugin/releases/download/v0.6.4/hangul-cite.xpi",
+					"update_hash": "sha256:834635f1ec32d7be8a09e1882cc37068793115e45d5ded3f6700b9927a1f76e3",
 					"applications": {
 						"zotero": {
 							"strict_min_version": "6.999"
