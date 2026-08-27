@@ -57,6 +57,9 @@ HangulCite = {
 
 		itemMenu.appendChild(menu);
 		this.trackElement(menu);
+
+		this.log('menu installed (copyItemsToClipboard: '
+			+ (window.Zotero_File_Interface?.copyItemsToClipboard ? 'ok' : 'MISSING') + ')');
 	},
 
 	addMenuItem(doc, popup, id, label, onCommand) {
