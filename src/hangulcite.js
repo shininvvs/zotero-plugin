@@ -469,12 +469,20 @@ HangulCite = {
 	 * 복사할 때 대화상자가 매번 앞을 가로막으면 쓰기 어려워진다.
 	 */
 	notify(window, message) {
+		const isWarning = message.includes('⚠');
+
 		const pw = new Zotero.ProgressWindow({ window });
 		pw.changeHeadline('한글 인용');
-		pw.addDescription(message);
+
+		// 알림 API 에는 버튼을 넣을 수단이 없다(옵션은 window 와 closeOnClick 뿐).
+		// 창 전체가 클릭 영역이므로 그 사실을 글로 알린다.
+		pw.addDescription(isWarning
+			? message + '\n\n▸ 아무 곳이나 클릭하면 닫힙니다'
+			: message);
+
 		pw.show();
 
-		if (!message.includes('⚠')) {
+		if (!isWarning) {
 			pw.startCloseTimer(3000);
 		}
 	}
