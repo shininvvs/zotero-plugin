@@ -177,23 +177,37 @@ HangulCite = {
 		bookSection: { field: 'bookTitle', label: '책 제목' }
 	},
 
+	/** 유형과 무관하게 비면 인용이 불완전해지는 칸 */
+	COMMON_FIELDS: [
+		{ field: 'title', label: '제목' }
+	],
+
 	/**
-	 * 컨테이너 필드가 빈 항목이 있는지 본다.
+	 * 비어 있어서 인용을 불완전하게 만드는 칸을 항목별로 모은다.
 	 *
 	 * 출력에서 빈 "In." 을 지우지 않고 알리기만 하는 이유는, 정상적으로 쓰인
 	 * "In" 과 구분할 수 없기 때문이다. 제목이 In 으로 끝나거나 성이 In 인
 	 * 저자가 있으면 멀쩡한 인용을 망가뜨린다. 고칠 곳은 항목 쪽이다.
 	 *
-	 * @returns {{title: string, label: string}[]} 어느 항목의 어느 칸이 비었는지
+	 * @returns {{title: string, empty: string[]}[]} 어느 항목의 어느 칸이 비었는지
 	 */
-	findEmptyContainers(items) {
+	findEmptyFields(items) {
 		return items
-			.map(item => [item, this.CONTAINER_FIELDS[item.itemType]])
-			.filter(([item, spec]) => spec && !item.getField(spec.field))
-			.map(([item, spec]) => ({
-				title: item.getField('title') || '(제목 없음)',
-				label: spec.label
-			}));
+			.map((item) => {
+				const specs = [
+					this.CONTAINER_FIELDS[item.itemType],
+					...this.COMMON_FIELDS
+				].filter(Boolean);
+
+				const empty = specs
+					.filter(spec => !item.getField(spec.field))
+					.map(spec => spec.label);
+
+				return empty.length
+					? { title: item.getField('title') || '(제목 없음)', empty }
+					: null;
+			})
+			.filter(Boolean);
 	},
 
 	truncate(text, limit = 70) {
@@ -206,14 +220,17 @@ HangulCite = {
 	 * 알림으로 띄우면 놓치기 쉽고, 항목이 여럿일 때 무엇을 고쳐야 하는지
 	 * 알 수 없다. 복사는 이미 끝난 뒤이므로 창을 막아도 잃는 것이 없다.
 	 */
-	warnEmptyContainers(window, summary, empty) {
-		const list = empty
-			.map(({ title, label }) => `• ${this.truncate(title, 60)}\n  빈 항목 : ${label}`)
+	warnEmptyFields(window, summary, entries) {
+		const list = entries
+			.map(({ title, empty }) =>
+				`• ${this.truncate(title, 60)}\n  빈 컬럼 => ${empty.join(', ')}`)
 			.join('\n\n');
+
+		const subject = entries.length > 1 ? '아래 항목들은' : '아래 항목은';
 
 		Zotero.alert(window, '한글 인용',
 			summary + '\n\n'
-			+ '아래 항목은 인용이 불완전합니다.\n\n'
+			+ `${subject} 인용이 불완전합니다.\n\n`
 			+ list);
 	},
 
@@ -306,14 +323,13 @@ HangulCite = {
 			this.writeClipboard(html, text);
 
 			const label = mode === 'citation' ? '본문 인용' : '참고문헌';
-			const emptyContainers = this.findEmptyContainers(items);
-
+			const emptyFields = this.findEmptyFields(items);
 			const summary = `${label} ${items.length}개 복사됨`;
 
-			if (emptyContainers.length) {
+			if (emptyFields.length) {
 				// 대화상자에서는 문제와 할 일만 보여준다. 스타일 이름 같은 것은
 				// 지금 필요한 정보가 아니라 읽는 데 방해가 된다.
-				this.warnEmptyContainers(window, summary, emptyContainers);
+				this.warnEmptyFields(window, summary, emptyFields);
 			}
 			else {
 				this.notify(window, `${summary}\n${style.title}`
@@ -488,23 +504,11 @@ HangulCite = {
 	},
 
 	/**
-	 * 오른쪽 아래 알림.
+	 * 오른쪽 아래 알림. 3초 뒤 사라지고, 마우스를 올리면 그동안 멈춘다.
 	 *
-	 * 성공 알림은 3초 뒤 사라진다. 경고는 닫지 않고 클릭할 때까지 띄워 둔다.
-	 * 놓치면 알릴 이유가 없어지기 때문이다. 클릭하면 닫히므로 확인 버튼처럼
-	 * 쓸 수 있고, 모달과 달리 다른 작업을 막지 않는다. 여러 항목을 연달아
-	 * 복사할 때 대화상자가 매번 앞을 가로막으면 쓰기 어려워진다.
-	 */
-	/**
-	 * 오른쪽 아래 알림.
-	 *
-	 * addDescription 은 부를 때마다 별도 블록을 만든다. 한 덩어리에 줄바꿈으로
-	 * 욱여넣으면 경고와 안내가 붙어 읽기 나쁘므로 블록을 나눠 넣는다.
-	 *
-	 * 성공 알림은 3초 뒤 사라진다. 경고는 닫지 않고 클릭할 때까지 띄워 둔다.
-	 * 놓치면 알릴 이유가 없어지기 때문이다. 알림 API 로는 버튼을 만들 수 없어서
-	 * (옵션이 window 와 closeOnClick 뿐이다) 창 전체가 클릭 영역이며, 그 사실을
-	 * 마지막 블록에 적는다.
+	 * 놓쳐도 되는 소식만 여기로 보낸다. 놓치면 안 되는 경고는 대화상자를 쓴다
+	 * (warnEmptyFields). addDescription 은 부를 때마다 별도 블록을 만들므로,
+	 * 한 덩어리에 줄바꿈으로 욱여넣지 않고 나눠 넣는다.
 	 *
 	 * @param {string|string[]} blocks - 각각 한 덩어리로 표시된다
 	 */
