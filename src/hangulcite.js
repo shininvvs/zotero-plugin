@@ -198,6 +198,26 @@ HangulCite = {
 		}
 	},
 
+	/**
+	 * 빈 필드가 남긴 잔여 공백을 정리한다. 항목에 값이 없으면 CSL 이 구두점만
+	 * 남겨서 "Visualization ." 처럼 마침표 앞에 공백이 생긴다.
+	 *
+	 * 내용은 지우지 않는다. 뒤가 빈 "In." 같은 것은 그대로 두는데, 정상적으로
+	 * 쓰인 경우와 구분할 수 없기 때문이다. 그건 항목의 빠진 필드를 채워야 한다.
+	 */
+	tidy(text) {
+		if (!text) return text;
+
+		// 태그 밖에만 적용한다. 속성값 안의 공백을 건드리면 링크가 깨질 수 있다.
+		return text.replace(/(<[^>]*>)|([^<]+)/g, (match, tag, chunk) => {
+			if (tag) return tag;
+			return chunk
+				.replace(/[ \t]+([.,;:)\]])/g, '$1')
+				.replace(/[ \t]{2,}/g, ' ')
+				.replace(/[ \t]+(\n|$)/g, '$1');
+		});
+	},
+
 	copyCitation(window, { mode, styleID }) {
 		try {
 			const items = this.getSelectedItems(window);
@@ -225,6 +245,9 @@ HangulCite = {
 				text = fixedText;
 				html = HangulCiteParticles.fix(html);
 			}
+
+			text = this.tidy(text);
+			html = this.tidy(html);
 
 			this.writeClipboard(html, text);
 

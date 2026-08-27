@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Hangul Cite",
-	"version": "0.3.2",
+	"version": "0.4.0",
 	"description": "선택한 Zotero 항목의 본문 인용과 참고문헌을 클립보드로 복사합니다. 한글(HWP)에 바로 붙여넣기 위한 플러그인입니다.",
 	"homepage_url": "https://github.com/shininvvs/zotero-plugin",
 	"applications": {
