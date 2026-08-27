@@ -162,6 +162,15 @@ CSL 공식 저장소에는 **한국어로 출력되는** 인용 양식이 없습
 목록 정렬은 별도 매크로가 성 기준으로 처리하므로 가나다·알파벳 순서는
 정상입니다.
 
+**`외` 앞의 공백**: citeproc-js 가 한글 앞뒤의 일반 공백을 CJK 규칙으로
+지워서 `Huang외` 처럼 붙어 나옵니다. 로케일 정의에서 `외` 앞에 줄바꿈 없는
+공백(U+00A0)을 넣어 우회했습니다.
+
+**다른 스타일에서도 같은 문제가 납니다**: 한국어 로케일은 `et-al` 을
+`기타` 로 정의하고 있어서, 이 스타일이 아닌 다른 스타일을 한국어로 뽑으면
+`Huang기타` 가 나옵니다. 공유 로케일 쪽 문제라 이 플러그인이 손댈 수 있는
+범위 밖입니다.
+
 한국 저자 이름은 Zotero 에서 **성명을 한 칸에** 입력하는 편이 좋습니다.
 두 칸으로 나누면 스타일에 따라 `홍, 길동` 처럼 쉼표가 끼어들 수 있습니다.
 
@@ -264,21 +273,27 @@ prefs.js               기본 설정값
 prefs.xhtml            설정 탭
 src/hangulcite.js      메뉴 등록 + 인용문 생성 + 클립보드 + 스타일 설치
 src/particles.js       조사 교정 (독립 모듈)
-styles/*.csl           번들 CSL 스타일 (CC BY-SA, 출처는 NOTICE.md)
+styles/korean-author-date.csl   직접 만든 한국어 스타일 (MIT)
+styles/*.csl           CSL 저장소에서 가져온 번들 (CC BY-SA, 출처는 NOTICE.md)
+update.json            자동 업데이트 매니페스트
 build.ps1              .xpi 패키징
 ```
 
 ## 앞으로
 
-- [ ] 한/글 COM 연동으로 커서 위치에 바로 삽입
 - [x] 국내 학회 CSL 스타일 번들
-- [ ] KCI / RISS 메타데이터 커넥터
+- [x] 한국어로 출력되는 CSL 스타일 직접 작성
 - [x] 단축키 지원
+- [x] 빈 칸 경고와 자동 채우기
+- [ ] 한/글 COM 연동으로 커서 위치에 바로 삽입 — 한/글 정품이 있어야 개발·검증 가능
+- [ ] KCI / RISS 메타데이터 커넥터 — Zotero 번역기를 따로 작성해야 함
 
 ## 라이선스
 
 플러그인 코드는 MIT.
 
-`styles/` 아래 `.csl` 파일은 CSL 공식 저장소에서 가져온 것으로
-**CC BY-SA 3.0**을 따릅니다. 출처와 원 저작자 표기는
-[styles/NOTICE.md](styles/NOTICE.md)에 있습니다.
+`styles/korean-author-date.csl` 은 직접 작성한 것으로 플러그인과 같은 MIT 입니다.
+
+그 밖의 `styles/*.csl` 은 CSL 공식 저장소에서 가져온 것으로 **CC BY-SA 3.0**
+을 따릅니다. 출처와 원 저작자 표기는 [styles/NOTICE.md](styles/NOTICE.md)에
+있습니다.

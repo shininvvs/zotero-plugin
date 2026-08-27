@@ -20,7 +20,7 @@
 	-->
 	<locale xml:lang="ko">
 		<terms>
-			<term name="et-al">외</term>
+			<term name="et-al"> 외</term>
 			<term name="in">수록</term>
 			<term name="editor" form="short">엮음</term>
 			<term name="translator" form="short">옮김</term>
