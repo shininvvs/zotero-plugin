@@ -460,11 +460,22 @@ HangulCite = {
 		this.log('prefs pane initialized');
 	},
 
+	/**
+	 * 오른쪽 아래 알림.
+	 *
+	 * 성공 알림은 3초 뒤 사라진다. 경고는 닫지 않고 클릭할 때까지 띄워 둔다.
+	 * 놓치면 알릴 이유가 없어지기 때문이다. 클릭하면 닫히므로 확인 버튼처럼
+	 * 쓸 수 있고, 모달과 달리 다른 작업을 막지 않는다. 여러 항목을 연달아
+	 * 복사할 때 대화상자가 매번 앞을 가로막으면 쓰기 어려워진다.
+	 */
 	notify(window, message) {
 		const pw = new Zotero.ProgressWindow({ window });
 		pw.changeHeadline('한글 인용');
 		pw.addDescription(message);
 		pw.show();
-		pw.startCloseTimer(3000);
+
+		if (!message.includes('⚠')) {
+			pw.startCloseTimer(3000);
+		}
 	}
 };
