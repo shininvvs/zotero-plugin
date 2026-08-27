@@ -168,6 +168,34 @@ HangulCite = {
 	},
 
 	/**
+	 * 값이 비면 일부 스타일이 "In." 만 남기는 필드. 둘 다 publicationTitle 을
+	 * 베이스로 해서 CSL 의 container-title 로 들어간다.
+	 * 라벨은 Zotero 한국어 화면에 실제로 표시되는 이름을 쓴다.
+	 */
+	CONTAINER_FIELDS: {
+		conferencePaper: { field: 'proceedingsTitle', label: '의사록' },
+		bookSection: { field: 'bookTitle', label: '책 제목' }
+	},
+
+	/**
+	 * 컨테이너 필드가 빈 항목이 있는지 본다.
+	 *
+	 * 출력에서 빈 "In." 을 지우지 않고 알리기만 하는 이유는, 정상적으로 쓰인
+	 * "In" 과 구분할 수 없기 때문이다. 제목이 In 으로 끝나거나 성이 In 인
+	 * 저자가 있으면 멀쩡한 인용을 망가뜨린다. 고칠 곳은 항목 쪽이다.
+	 *
+	 * @returns {string[]} 비어 있는 필드의 라벨 목록 (중복 제거)
+	 */
+	findEmptyContainers(items) {
+		const empty = items
+			.map(item => [item, this.CONTAINER_FIELDS[item.itemType]])
+			.filter(([item, spec]) => spec && !item.getField(spec.field))
+			.map(([, spec]) => spec.label);
+
+		return [...new Set(empty)];
+	},
+
+	/**
 	 * HTML 과 평문을 함께 만든다. Zotero 자체 구현과 같은 방식으로,
 	 * 엔진은 html 로 만들고 두 형식을 각각 뽑는다.
 	 */
@@ -256,8 +284,14 @@ HangulCite = {
 			this.writeClipboard(html, text);
 
 			const label = mode === 'citation' ? '본문 인용' : '참고문헌';
+			const emptyContainers = this.findEmptyContainers(items);
+
 			this.notify(window, `${label} ${items.length}개 복사됨\n${style.title}`
-				+ (corrected ? '\n조사 교정됨' : ''));
+				+ (corrected ? '\n조사 교정됨' : '')
+				+ (emptyContainers.length
+					? `\n⚠ ${emptyContainers.join(', ')}이(가) 비어 있습니다`
+					+ '\n   스타일에 따라 "In."만 나옵니다'
+					: ''));
 		}
 		catch (e) {
 			this.log(e);
