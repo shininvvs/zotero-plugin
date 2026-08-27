@@ -83,36 +83,16 @@ HangulCite = {
 	// --- Citation ---------------------------------------------------------
 
 	/**
-	 * Zotero 환경설정의 빠른 복사 스타일을 그대로 따른다.
-	 * 사용자가 한국 학회 양식을 설정해 두었다면 그것이 쓰인다.
+	 * 인용 스타일은 Zotero 환경설정의 빠른 복사 설정을 그대로 따른다.
+	 * 사용자가 한국 학회 양식을 지정해 두었다면 그것이 쓰인다.
 	 */
 	getStyle() {
 		const setting = Zotero.Prefs.get('export.quickCopy.setting') || '';
 		const match = /^bibliography(?:\/[^=]*)?=(.+)$/.exec(setting);
 		const styleID = match ? match[1] : this.FALLBACK_STYLE;
-		return Zotero.Styles.get(styleID) || Zotero.Styles.get(this.FALLBACK_STYLE);
-	},
-
-	format(items, style, mode) {
-		const locale = Zotero.Prefs.get('export.quickCopy.locale') || Zotero.locale;
-		const engine = style.getCiteProc(locale, 'text');
-		try {
-			engine.updateItems(items.map(item => item.id));
-
-			if (mode === 'bibliography') {
-				return Zotero.Cite.makeFormattedBibliography(engine, 'text');
-			}
-			return engine.previewCitationCluster(
-				{
-					citationItems: items.map(item => ({ id: item.id })),
-					properties: {}
-				},
-				[], [], 'text'
-			);
-		}
-		finally {
-			engine.free();
-		}
+		return Zotero.Styles.get(styleID)
+			? styleID
+			: (Zotero.Styles.get(this.FALLBACK_STYLE) ? this.FALLBACK_STYLE : null);
 	},
 
 	copyToClipboard(window, mode) {
@@ -125,21 +105,26 @@ HangulCite = {
 				return;
 			}
 
-			const style = this.getStyle();
-			if (!style) {
+			const styleID = this.getStyle();
+			if (!styleID) {
 				this.notify(window, '인용 스타일을 찾을 수 없습니다.');
 				return;
 			}
 
-			const text = (this.format(items, style, mode) || '').trim();
-			if (!text) {
-				this.notify(window, '생성된 내용이 없습니다.');
+			if (!window.Zotero_File_Interface?.copyItemsToClipboard) {
+				this.notify(window, '이 Zotero 버전에서는 클립보드 복사를 지원하지 않습니다.');
 				return;
 			}
 
-			Zotero.Utilities.Internal.copyTextToClipboard(text);
+			// Zotero 자체 구현을 그대로 호출한다. text/html 과 text/plain 을 함께
+			// 클립보드에 올리므로, 한글에 붙여넣을 때 학술지명 이탤릭 같은
+			// 서식이 그대로 유지된다.
+			const locale = Zotero.Prefs.get('export.quickCopy.locale') || Zotero.locale;
+			window.Zotero_File_Interface.copyItemsToClipboard(
+				items, styleID, locale, false, mode === 'citation');
 
-			const label = mode === 'bibliography' ? '참고문헌' : '본문 인용';
+			const label = mode === 'citation' ? '본문 인용' : '참고문헌';
+			const style = Zotero.Styles.get(styleID);
 			this.notify(window, `${label} ${items.length}개 복사됨\n${style.title}`);
 		}
 		catch (e) {

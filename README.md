@@ -13,7 +13,7 @@ Zotero는 Word와 LibreOffice만 지원하기 때문에, 한글 사용자는 참
 3. 우측 상단 톱니바퀴 → **Install Plugin From File...**
 4. 다운로드한 `.xpi` 선택
 
-> Zotero 7 이상이 필요합니다.
+> Zotero 7 이상. **Zotero 10.0.1에서 API 호환성을 확인했습니다.**
 
 ## 사용법
 
@@ -75,6 +75,7 @@ build.ps1              .xpi 패키징
 - [ ] 국내 학회 CSL 스타일 번들
 - [ ] KCI / RISS 메타데이터 커넥터
 - [ ] 단축키 지원
+- [ ] 인용 스타일 개별 설정 (현재는 Zotero 빠른 복사 설정을 따름)
 
 ## 라이선스
 
