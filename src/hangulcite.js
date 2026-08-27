@@ -223,7 +223,7 @@ HangulCite = {
 	warnEmptyFields(window, summary, entries) {
 		const list = entries
 			.map(({ title, empty }) =>
-				`• ${this.truncate(title, 60)}\n  빈 컬럼 => ${empty.join(', ')}`)
+				`• ${this.truncate(title, 60)}\n  빈 컬럼 : [${empty.join(', ')}]`)
 			.join('\n\n');
 
 		const subject = entries.length > 1 ? '아래 항목들은' : '아래 항목은';

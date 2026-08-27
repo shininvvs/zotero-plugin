@@ -79,10 +79,10 @@ Meng, Chutian, ... Yi Yang과 Yueting Zhuang. "LogiStory: ..."
 아래 항목들은 인용이 불완전합니다.
 
 • LogiStory: A Logic-Aware Framework for Multi-Image Story…
-  빈 컬럼 => 의사록
+  빈 컬럼 : [의사록]
 
 • 한국어 정보처리의 현재와 미래
-  빈 컬럼 => 책 제목, 제목
+  빈 컬럼 : [책 제목, 제목]
 ```
 
 복사는 이미 끝난 뒤에 뜨므로, 확인을 누르지 않아도 클립보드에는 들어가
