@@ -103,7 +103,16 @@ HangulCite = {
 			() => this.copyCitation(window, { mode: 'citation' }));
 
 		popup.appendChild(doc.createXULElement('menuseparator'));
-		this.addStyleMenu(doc, popup, window);
+		this.addStyleMenu(doc, popup, window, {
+			id: 'hangul-cite-styles-bib',
+			label: '다른 스타일로 참고문헌 복사',
+			mode: 'bibliography'
+		});
+		this.addStyleMenu(doc, popup, window, {
+			id: 'hangul-cite-styles-intext',
+			label: '다른 스타일로 본문 인용 복사',
+			mode: 'citation'
+		});
 
 		popup.appendChild(doc.createXULElement('menuseparator'));
 		this.addMenuItem(doc, popup, 'hangul-cite-links', '링크 복사',
@@ -158,10 +167,10 @@ HangulCite = {
 	 * 이번 한 번만 다른 양식으로 뽑고 싶을 때 쓴다.
 	 * 사용자가 스타일을 추가할 수 있으므로 열 때마다 다시 채운다.
 	 */
-	addStyleMenu(doc, popup, window) {
+	addStyleMenu(doc, popup, window, { id, label, mode }) {
 		const menu = doc.createXULElement('menu');
-		menu.id = 'hangul-cite-styles';
-		menu.setAttribute('label', '다른 스타일로 참고문헌 복사');
+		menu.id = id;
+		menu.setAttribute('label', label);
 
 		const stylePopup = doc.createXULElement('menupopup');
 		stylePopup.addEventListener('popupshowing', () => {
@@ -173,10 +182,8 @@ HangulCite = {
 				item.setAttribute('label', style.title);
 				item.setAttribute('type', 'radio');
 				if (style.styleID === current) item.setAttribute('checked', 'true');
-				item.addEventListener('command', () => this.copyCitation(window, {
-					mode: 'bibliography',
-					styleID: style.styleID
-				}));
+				item.addEventListener('command',
+					() => this.copyCitation(window, { mode, styleID: style.styleID }));
 				stylePopup.appendChild(item);
 			}
 		});

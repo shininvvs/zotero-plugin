@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Hangul Cite",
-	"version": "0.8.1",
+	"version": "0.8.2",
 	"description": "?좏깮??Zotero ??ぉ??蹂몃Ц ?몄슜怨?李멸퀬臾명뿄???대┰蹂대뱶濡?蹂듭궗?⑸땲?? ?쒓?(HWP)??諛붾줈 遺숈뿬?ｊ린 ?꾪븳 ?뚮윭洹몄씤?낅땲??",
 	"homepage_url": "https://github.com/shininvvs/zotero-plugin",
 	"applications": {
