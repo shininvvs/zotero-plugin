@@ -184,15 +184,39 @@ HangulCite = {
 	 * "In" 과 구분할 수 없기 때문이다. 제목이 In 으로 끝나거나 성이 In 인
 	 * 저자가 있으면 멀쩡한 인용을 망가뜨린다. 고칠 곳은 항목 쪽이다.
 	 *
-	 * @returns {string[]} 비어 있는 필드의 라벨 목록 (중복 제거)
+	 * @returns {{title: string, label: string}[]} 어느 항목의 어느 칸이 비었는지
 	 */
 	findEmptyContainers(items) {
-		const empty = items
+		return items
 			.map(item => [item, this.CONTAINER_FIELDS[item.itemType]])
 			.filter(([item, spec]) => spec && !item.getField(spec.field))
-			.map(([, spec]) => spec.label);
+			.map(([item, spec]) => ({
+				title: item.getField('title') || '(제목 없음)',
+				label: spec.label
+			}));
+	},
 
-		return [...new Set(empty)];
+	truncate(text, limit = 70) {
+		return text.length > limit ? text.slice(0, limit - 1) + '…' : text;
+	},
+
+	/**
+	 * 어느 항목의 어느 칸이 비었는지 대화상자로 알린다.
+	 *
+	 * 알림으로 띄우면 놓치기 쉽고, 항목이 여럿일 때 무엇을 고쳐야 하는지
+	 * 알 수 없다. 복사는 이미 끝난 뒤이므로 창을 막아도 잃는 것이 없다.
+	 */
+	warnEmptyContainers(window, copied, empty) {
+		const list = empty
+			.map(({ title, label }) => `• ${this.truncate(title)}  [${label}]`)
+			.join('\n');
+
+		Zotero.alert(window, '한글 인용',
+			copied + '\n\n'
+			+ '아래 항목은 표시된 칸이 비어 있습니다.\n'
+			+ '스타일에 따라 내용 없는 "In." 만 출력됩니다.\n'
+			+ '항목을 열어 채우면 해결됩니다.\n\n'
+			+ list);
 	},
 
 	/**
@@ -286,12 +310,15 @@ HangulCite = {
 			const label = mode === 'citation' ? '본문 인용' : '참고문헌';
 			const emptyContainers = this.findEmptyContainers(items);
 
-			this.notify(window, `${label} ${items.length}개 복사됨\n${style.title}`
-				+ (corrected ? '\n조사 교정됨' : '')
-				+ (emptyContainers.length
-					? `\n⚠ ${emptyContainers.join(', ')}이(가) 비어 있습니다`
-					+ '\n   스타일에 따라 "In."만 나옵니다'
-					: ''));
+			const copied = `${label} ${items.length}개 복사됨 — ${style.title}`
+				+ (corrected ? '\n조사 교정됨' : '');
+
+			if (emptyContainers.length) {
+				this.warnEmptyContainers(window, copied, emptyContainers);
+			}
+			else {
+				this.notify(window, copied);
+			}
 		}
 		catch (e) {
 			this.log(e);
@@ -468,22 +495,30 @@ HangulCite = {
 	 * 쓸 수 있고, 모달과 달리 다른 작업을 막지 않는다. 여러 항목을 연달아
 	 * 복사할 때 대화상자가 매번 앞을 가로막으면 쓰기 어려워진다.
 	 */
-	notify(window, message) {
-		const isWarning = message.includes('⚠');
+	/**
+	 * 오른쪽 아래 알림.
+	 *
+	 * addDescription 은 부를 때마다 별도 블록을 만든다. 한 덩어리에 줄바꿈으로
+	 * 욱여넣으면 경고와 안내가 붙어 읽기 나쁘므로 블록을 나눠 넣는다.
+	 *
+	 * 성공 알림은 3초 뒤 사라진다. 경고는 닫지 않고 클릭할 때까지 띄워 둔다.
+	 * 놓치면 알릴 이유가 없어지기 때문이다. 알림 API 로는 버튼을 만들 수 없어서
+	 * (옵션이 window 와 closeOnClick 뿐이다) 창 전체가 클릭 영역이며, 그 사실을
+	 * 마지막 블록에 적는다.
+	 *
+	 * @param {string|string[]} blocks - 각각 한 덩어리로 표시된다
+	 */
+	notify(window, blocks) {
+		const parts = (Array.isArray(blocks) ? blocks : [blocks]).filter(Boolean);
 
 		const pw = new Zotero.ProgressWindow({ window });
 		pw.changeHeadline('한글 인용');
 
-		// 알림 API 에는 버튼을 넣을 수단이 없다(옵션은 window 와 closeOnClick 뿐).
-		// 창 전체가 클릭 영역이므로 그 사실을 글로 알린다.
-		pw.addDescription(isWarning
-			? message + '\n\n▸ 아무 곳이나 클릭하면 닫힙니다'
-			: message);
+		for (const part of parts) {
+			pw.addDescription(part);
+		}
 
 		pw.show();
-
-		if (!isWarning) {
-			pw.startCloseTimer(3000);
-		}
+		pw.startCloseTimer(3000);
 	}
 };
