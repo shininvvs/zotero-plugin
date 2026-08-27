@@ -206,16 +206,15 @@ HangulCite = {
 	 * 알림으로 띄우면 놓치기 쉽고, 항목이 여럿일 때 무엇을 고쳐야 하는지
 	 * 알 수 없다. 복사는 이미 끝난 뒤이므로 창을 막아도 잃는 것이 없다.
 	 */
-	warnEmptyContainers(window, copied, empty) {
+	warnEmptyContainers(window, summary, empty) {
 		const list = empty
-			.map(({ title, label }) => `• ${this.truncate(title)}  [${label}]`)
+			.map(({ title, label }) => `• ${this.truncate(title, 60)}  →  ${label}`)
 			.join('\n');
 
 		Zotero.alert(window, '한글 인용',
-			copied + '\n\n'
-			+ '아래 항목은 표시된 칸이 비어 있습니다.\n'
-			+ '스타일에 따라 내용 없는 "In." 만 출력됩니다.\n'
-			+ '항목을 열어 채우면 해결됩니다.\n\n'
+			summary + '\n\n'
+			+ '아래 항목은 표시된 칸이 비어 있어 인용이 불완전합니다.\n'
+			+ '그 칸을 채우면 해결됩니다.\n\n'
 			+ list);
 	},
 
@@ -310,14 +309,16 @@ HangulCite = {
 			const label = mode === 'citation' ? '본문 인용' : '참고문헌';
 			const emptyContainers = this.findEmptyContainers(items);
 
-			const copied = `${label} ${items.length}개 복사됨 — ${style.title}`
-				+ (corrected ? '\n조사 교정됨' : '');
+			const summary = `${label} ${items.length}개 복사됨`;
 
 			if (emptyContainers.length) {
-				this.warnEmptyContainers(window, copied, emptyContainers);
+				// 대화상자에서는 문제와 할 일만 보여준다. 스타일 이름 같은 것은
+				// 지금 필요한 정보가 아니라 읽는 데 방해가 된다.
+				this.warnEmptyContainers(window, summary, emptyContainers);
 			}
 			else {
-				this.notify(window, copied);
+				this.notify(window, `${summary}\n${style.title}`
+					+ (corrected ? '\n조사 교정됨' : ''));
 			}
 		}
 		catch (e) {
