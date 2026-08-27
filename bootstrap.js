@@ -18,14 +18,14 @@ async function startup({ id, version, rootURI }) {
 		pluginID: id,
 		src: rootURI + 'prefs.xhtml',
 		id: 'hangul-cite-prefs',
-		label: '한글 인용',
-		scripts: [rootURI + 'src/prefs-pane.js']
+		label: '한글 인용'
 	});
 }
 
 function shutdown() {
 	if (!HangulCite) return;
 	HangulCite.removeFromAllWindows();
+	delete Zotero.HangulCite;
 	HangulCite = undefined;
 	HangulCiteParticles = undefined;
 }

@@ -354,6 +354,51 @@ HangulCite = {
 		return result;
 	},
 
+	// --- Preferences pane -------------------------------------------------
+
+	/**
+	 * 환경설정 탭의 동작을 붙인다. 탭의 인라인 onload 는 환경설정 창 스코프에서
+	 * 실행되므로, 거기서 닿을 수 있는 Zotero.HangulCite 를 통해 호출된다.
+	 * @param {Element} root - 탭의 최상위 요소
+	 */
+	initPrefsPane(root) {
+		const doc = root.ownerDocument;
+		const button = doc.getElementById('hangul-cite-install-styles');
+		const status = doc.getElementById('hangul-cite-styles-status');
+		if (!button || !status) {
+			this.log('prefs pane: elements not found');
+			return;
+		}
+
+		const refresh = () => {
+			const installed = this.countInstalledStyles();
+			const total = this.KOREAN_STYLES.length;
+			status.value = `${total}개 중 ${installed}개 설치됨`;
+			button.disabled = installed === total;
+		};
+
+		button.addEventListener('command', async () => {
+			button.disabled = true;
+			status.value = '설치 중...';
+			try {
+				const result = await this.installBundledStyles();
+				refresh();
+				if (result.failed.length) {
+					status.value += ` · ${result.failed.length}개 실패 (디버그 출력 참고)`;
+					button.disabled = false;
+				}
+			}
+			catch (e) {
+				Zotero.logError(e);
+				status.value = '오류가 발생했습니다: ' + e.message;
+				button.disabled = false;
+			}
+		});
+
+		refresh();
+		this.log('prefs pane initialized');
+	},
+
 	notify(window, message) {
 		const pw = new Zotero.ProgressWindow({ window });
 		pw.changeHeadline('한글 인용');

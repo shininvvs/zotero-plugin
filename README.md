@@ -145,7 +145,6 @@ prefs.js               기본 설정값
 prefs.xhtml            환경설정 탭
 src/hangulcite.js      메뉴 등록 + 인용문 생성 + 클립보드 + 스타일 설치
 src/particles.js       조사 교정 (독립 모듈)
-src/prefs-pane.js      환경설정 탭 동작
 styles/*.csl           번들 CSL 스타일 (CC BY-SA, 출처는 NOTICE.md)
 build.ps1              .xpi 패키징
 ```

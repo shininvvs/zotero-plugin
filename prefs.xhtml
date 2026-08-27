@@ -1,10 +1,10 @@
-<vbox id="hangul-cite-prefpane"
-	onload="event.waitUntil(HangulCitePrefs.init())"
+<vbox id="hangul-cite-prefpane" class="main-section"
+	onload="event.waitUntil(Zotero.HangulCite.initPrefsPane(this))"
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	xmlns:html="http://www.w3.org/1999/xhtml">
 
 	<groupbox>
-		<html:h2>조사 교정</html:h2>
+		<label><html:h2>조사 교정</html:h2></label>
 
 		<checkbox
 			label="복사할 때 조사를 자동으로 고칩니다"
@@ -28,7 +28,7 @@
 	</groupbox>
 
 	<groupbox>
-		<html:h2>국내 학회 스타일</html:h2>
+		<label><html:h2>국내 학회 스타일</html:h2></label>
 
 		<description class="tight">
 			국내 학회지 인용 양식이 플러그인에 함께 들어 있습니다. 설치하면
@@ -40,13 +40,14 @@
 			<button id="hangul-cite-install-styles"
 				label="국내 학회 스타일 설치"
 				native="true"/>
-			<label id="hangul-cite-styles-status" style="margin-inline-start: 8px;"/>
+			<label id="hangul-cite-styles-status"
+				style="margin-inline-start: 8px;"/>
 		</hbox>
 
 		<description class="tight">
-			일부 스타일은 다른 스타일의 서식을 그대로 쓰는 종속 스타일이라,
-			필요한 부모 스타일도 함께 설치됩니다. 설치된 스타일을 지우려면
-			편집 → 환경설정 → 인용에서 제거하세요.
+			일부는 다른 스타일의 서식을 그대로 쓰는 종속 스타일이라 필요한 부모
+			스타일도 함께 설치됩니다. 지우려면 편집 → 환경설정 → 인용에서
+			제거하세요.
 		</description>
 	</groupbox>
 
