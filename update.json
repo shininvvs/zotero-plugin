@@ -5,7 +5,7 @@
 				{
 					"version": "0.4.1",
 					"update_link": "https://github.com/shininvvs/zotero-plugin/releases/download/v0.4.1/hangul-cite.xpi",
-					"update_hash": "sha256:1e81b3778e8f8701d33d37d1976f9739c66dfe2b837fad3cae6304b56de8d130",
+					"update_hash": "sha256:949f23a267327fadce0f1d6f5b2b2dbc46a5f6db80ef5d1b67b69a195b7b7d1f",
 					"applications": {
 						"zotero": {
 							"strict_min_version": "6.999"
