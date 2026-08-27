@@ -1,0 +1,28 @@
+<vbox xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:html="http://www.w3.org/1999/xhtml">
+
+	<groupbox>
+		<html:h2>조사 교정</html:h2>
+
+		<checkbox
+			label="복사할 때 조사를 자동으로 고칩니다"
+			preference="extensions.zotero.hangulCite.fixParticles"
+			native="true"/>
+
+		<description class="tight">
+			한국어 인용 스타일은 앞 단어의 받침을 판별하지 못해 "와/과"처럼 두 조사를
+			함께 출력하고 뒤에 공백도 넣지 않습니다. 이 설정을 켜면 앞 글자를 보고
+			알맞은 조사만 남깁니다.
+		</description>
+
+		<description class="tight">
+			Yi Yang와/과Yueting Zhuang → Yi Yang과 Yueting Zhuang
+		</description>
+
+		<description class="tight">
+			한글은 받침을 정확히 계산하지만, 로마자 이름은 한국어 독음을 근사하므로
+			틀릴 수 있습니다. 결과가 어색하면 이 설정을 끄고 직접 고치세요.
+		</description>
+	</groupbox>
+
+</vbox>

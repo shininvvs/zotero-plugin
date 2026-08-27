@@ -6,6 +6,7 @@ HangulCite = {
 	addedElementIDs: [],
 
 	FALLBACK_STYLE: 'http://www.zotero.org/styles/apa',
+	PREF_FIX_PARTICLES: 'hangulCite.fixParticles',
 
 	init({ id, version, rootURI }) {
 		if (this.initialized) return;
@@ -50,16 +51,23 @@ HangulCite = {
 		const popup = doc.createXULElement('menupopup');
 		menu.appendChild(popup);
 
-		this.addMenuItem(doc, popup, 'hangul-cite-intext', '본문 인용 복사',
-			() => this.copyToClipboard(window, 'citation'));
 		this.addMenuItem(doc, popup, 'hangul-cite-bib', '참고문헌 복사',
-			() => this.copyToClipboard(window, 'bibliography'));
+			() => this.copyCitation(window, { mode: 'bibliography' }));
+		this.addMenuItem(doc, popup, 'hangul-cite-intext', '본문 인용 복사',
+			() => this.copyCitation(window, { mode: 'citation' }));
+
+		popup.appendChild(doc.createXULElement('menuseparator'));
+		this.addStyleMenu(doc, popup, window);
+
+		popup.appendChild(doc.createXULElement('menuseparator'));
+		this.addMenuItem(doc, popup, 'hangul-cite-links', '링크 복사',
+			() => this.copyLinks(window));
 
 		itemMenu.appendChild(menu);
 		this.trackElement(menu);
 
-		this.log('menu installed (copyItemsToClipboard: '
-			+ (window.Zotero_File_Interface?.copyItemsToClipboard ? 'ok' : 'MISSING') + ')');
+		this.log('menu installed (particles: '
+			+ (typeof HangulCiteParticles === 'object' ? 'ok' : 'MISSING') + ')');
 	},
 
 	addMenuItem(doc, popup, id, label, onCommand) {
@@ -68,6 +76,39 @@ HangulCite = {
 		item.setAttribute('label', label);
 		item.addEventListener('command', onCommand);
 		popup.appendChild(item);
+		return item;
+	},
+
+	/**
+	 * 설치된 스타일 목록을 하위 메뉴로 단다. 환경설정을 열지 않고
+	 * 이번 한 번만 다른 양식으로 뽑고 싶을 때 쓴다.
+	 * 사용자가 스타일을 추가할 수 있으므로 열 때마다 다시 채운다.
+	 */
+	addStyleMenu(doc, popup, window) {
+		const menu = doc.createXULElement('menu');
+		menu.id = 'hangul-cite-styles';
+		menu.setAttribute('label', '다른 스타일로 참고문헌 복사');
+
+		const stylePopup = doc.createXULElement('menupopup');
+		stylePopup.addEventListener('popupshowing', () => {
+			while (stylePopup.firstChild) stylePopup.firstChild.remove();
+
+			const current = this.getStyleID();
+			for (const style of Zotero.Styles.getVisible()) {
+				const item = doc.createXULElement('menuitem');
+				item.setAttribute('label', style.title);
+				item.setAttribute('type', 'radio');
+				if (style.styleID === current) item.setAttribute('checked', 'true');
+				item.addEventListener('command', () => this.copyCitation(window, {
+					mode: 'bibliography',
+					styleID: style.styleID
+				}));
+				stylePopup.appendChild(item);
+			}
+		});
+
+		menu.appendChild(stylePopup);
+		popup.appendChild(menu);
 	},
 
 	trackElement(el) {
@@ -85,50 +126,143 @@ HangulCite = {
 
 	// --- Citation ---------------------------------------------------------
 
-	/**
-	 * 인용 스타일은 Zotero 환경설정의 빠른 복사 설정을 그대로 따른다.
-	 * 사용자가 한국 학회 양식을 지정해 두었다면 그것이 쓰인다.
-	 */
-	getStyle() {
+	/** 인용 스타일은 Zotero 환경설정의 빠른 복사 설정을 그대로 따른다. */
+	getStyleID() {
 		const setting = Zotero.Prefs.get('export.quickCopy.setting') || '';
 		const match = /^bibliography(?:\/[^=]*)?=(.+)$/.exec(setting);
 		const styleID = match ? match[1] : this.FALLBACK_STYLE;
-		return Zotero.Styles.get(styleID)
-			? styleID
-			: (Zotero.Styles.get(this.FALLBACK_STYLE) ? this.FALLBACK_STYLE : null);
+		return Zotero.Styles.get(styleID) ? styleID : this.FALLBACK_STYLE;
 	},
 
-	copyToClipboard(window, mode) {
-		try {
-			const items = window.ZoteroPane.getSelectedItems()
-				.filter(item => item.isRegularItem());
+	getSelectedItems(window) {
+		return window.ZoteroPane.getSelectedItems().filter(item => item.isRegularItem());
+	},
 
+	/**
+	 * HTML 과 평문을 함께 만든다. Zotero 자체 구현과 같은 방식으로,
+	 * 엔진은 html 로 만들고 두 형식을 각각 뽑는다.
+	 */
+	format(items, style, mode) {
+		const locale = Zotero.Prefs.get('export.quickCopy.locale') || Zotero.locale;
+		const engine = style.getCiteProc(locale, 'html');
+		try {
+			engine.updateItems(items.map(item => item.id));
+
+			if (mode === 'citation') {
+				const citation = {
+					citationItems: items.map(item => ({ id: item.id })),
+					properties: {}
+				};
+				return {
+					html: engine.previewCitationCluster(citation, [], [], 'html'),
+					text: engine.previewCitationCluster(citation, [], [], 'text')
+				};
+			}
+
+			return {
+				html: Zotero.Cite.makeFormattedBibliographyOrCitationList(engine, items, 'html'),
+				text: Zotero.Cite.makeFormattedBibliographyOrCitationList(engine, items, 'text')
+			};
+		}
+		finally {
+			engine.free();
+		}
+	},
+
+	copyCitation(window, { mode, styleID }) {
+		try {
+			const items = this.getSelectedItems(window);
 			if (!items.length) {
 				this.notify(window, '선택된 항목이 없습니다.');
 				return;
 			}
 
-			const styleID = this.getStyle();
-			if (!styleID) {
+			const style = Zotero.Styles.get(styleID || this.getStyleID());
+			if (!style) {
 				this.notify(window, '인용 스타일을 찾을 수 없습니다.');
 				return;
 			}
 
-			if (!window.Zotero_File_Interface?.copyItemsToClipboard) {
-				this.notify(window, '이 Zotero 버전에서는 클립보드 복사를 지원하지 않습니다.');
+			let { html, text } = this.format(items, style, mode);
+			if (!text || !text.trim()) {
+				this.notify(window, '생성된 내용이 없습니다.');
 				return;
 			}
 
-			// Zotero 자체 구현을 그대로 호출한다. text/html 과 text/plain 을 함께
-			// 클립보드에 올리므로, 한글에 붙여넣을 때 학술지명 이탤릭 같은
-			// 서식이 그대로 유지된다.
-			const locale = Zotero.Prefs.get('export.quickCopy.locale') || Zotero.locale;
-			window.Zotero_File_Interface.copyItemsToClipboard(
-				items, styleID, locale, false, mode === 'citation');
+			let corrected = false;
+			if (Zotero.Prefs.get(this.PREF_FIX_PARTICLES)) {
+				const fixedText = HangulCiteParticles.fix(text);
+				corrected = fixedText !== text;
+				text = fixedText;
+				html = HangulCiteParticles.fix(html);
+			}
+
+			this.writeClipboard(html, text);
 
 			const label = mode === 'citation' ? '본문 인용' : '참고문헌';
-			const style = Zotero.Styles.get(styleID);
-			this.notify(window, `${label} ${items.length}개 복사됨\n${style.title}`);
+			this.notify(window, `${label} ${items.length}개 복사됨\n${style.title}`
+				+ (corrected ? '\n조사 교정됨' : ''));
+		}
+		catch (e) {
+			this.log(e);
+			this.notify(window, '오류가 발생했습니다: ' + e.message);
+		}
+	},
+
+	/**
+	 * text/html 과 text/plain 을 함께 올린다. 두 형식을 모두 넣어야
+	 * 붙여넣는 곳에 따라 서식이 살거나 평문으로 떨어진다.
+	 */
+	writeClipboard(html, text) {
+		const transferable = Components.classes['@mozilla.org/widget/transferable;1']
+			.createInstance(Components.interfaces.nsITransferable);
+		const clipboard = Components.classes['@mozilla.org/widget/clipboard;1']
+			.getService(Components.interfaces.nsIClipboard);
+
+		const addFlavor = (flavor, value) => {
+			const holder = Components.classes['@mozilla.org/supports-string;1']
+				.createInstance(Components.interfaces.nsISupportsString);
+			holder.data = value;
+			transferable.addDataFlavor(flavor);
+			transferable.setTransferData(flavor, holder, value.length * 2);
+		};
+
+		addFlavor('text/html', html);
+		addFlavor('text/plain', text);
+
+		clipboard.setData(transferable, null,
+			Components.interfaces.nsIClipboard.kGlobalClipboard);
+	},
+
+	// --- Links ------------------------------------------------------------
+
+	/** DOI 가 있으면 doi.org 링크로, 없으면 URL 필드를 쓴다. */
+	copyLinks(window) {
+		try {
+			const items = this.getSelectedItems(window);
+			if (!items.length) {
+				this.notify(window, '선택된 항목이 없습니다.');
+				return;
+			}
+
+			const links = items
+				.map((item) => {
+					const doi = item.getField('DOI');
+					if (doi) return 'https://doi.org/' + doi;
+					return item.getField('url') || null;
+				})
+				.filter(Boolean);
+
+			if (!links.length) {
+				this.notify(window, 'DOI나 URL이 있는 항목이 없습니다.');
+				return;
+			}
+
+			Zotero.Utilities.Internal.copyTextToClipboard(links.join('\n'));
+
+			const missing = items.length - links.length;
+			this.notify(window, `링크 ${links.length}개 복사됨`
+				+ (missing ? `\n${missing}개는 링크 없음` : ''));
 		}
 		catch (e) {
 			this.log(e);

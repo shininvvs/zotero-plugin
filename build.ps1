@@ -14,6 +14,8 @@ New-Item -ItemType Directory -Path $out | Out-Null
 $items = @()
 $items += Get-Item (Join-Path $root 'manifest.json')
 $items += Get-Item (Join-Path $root 'bootstrap.js')
+$items += Get-Item (Join-Path $root 'prefs.js')
+$items += Get-Item (Join-Path $root 'prefs.xhtml')
 $items += Get-ChildItem (Join-Path $root 'src') -Recurse -File
 
 # Entry names are built by hand with forward slashes. Compress-Archive on Windows
