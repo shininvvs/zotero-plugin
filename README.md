@@ -76,11 +76,13 @@ Meng, Chutian, ... Yi Yang과 Yueting Zhuang. "LogiStory: ..."
 ```
 참고문헌 3개 복사됨
 
-아래 항목은 표시된 칸이 비어 있어 인용이 불완전합니다.
-그 칸을 채우면 해결됩니다.
+아래 항목은 인용이 불완전합니다.
 
-• LogiStory: A Logic-Aware Framework for Multi-Image Story…  →  의사록
-• 한국어 정보처리의 현재와 미래  →  책 제목
+• LogiStory: A Logic-Aware Framework for Multi-Image Story…
+  빈 항목 : 의사록
+
+• 한국어 정보처리의 현재와 미래
+  빈 항목 : 책 제목
 ```
 
 복사는 이미 끝난 뒤에 뜨므로, 확인을 누르지 않아도 클립보드에는 들어가

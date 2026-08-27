@@ -208,13 +208,12 @@ HangulCite = {
 	 */
 	warnEmptyContainers(window, summary, empty) {
 		const list = empty
-			.map(({ title, label }) => `• ${this.truncate(title, 60)}  →  ${label}`)
-			.join('\n');
+			.map(({ title, label }) => `• ${this.truncate(title, 60)}\n  빈 항목 : ${label}`)
+			.join('\n\n');
 
 		Zotero.alert(window, '한글 인용',
 			summary + '\n\n'
-			+ '아래 항목은 표시된 칸이 비어 있어 인용이 불완전합니다.\n'
-			+ '그 칸을 채우면 해결됩니다.\n\n'
+			+ '아래 항목은 인용이 불완전합니다.\n\n'
 			+ list);
 	},
 
