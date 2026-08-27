@@ -209,13 +209,17 @@ HangulCite = {
 		if (!text) return text;
 
 		// 태그 밖에만 적용한다. 속성값 안의 공백을 건드리면 링크가 깨질 수 있다.
-		return text.replace(/(<[^>]*>)|([^<]+)/g, (match, tag, chunk) => {
+		const cleaned = text.replace(/(<[^>]*>)|([^<]+)/g, (match, tag, chunk) => {
 			if (tag) return tag;
 			return chunk
 				.replace(/[ \t]+([.,;:)\]])/g, '$1')
 				.replace(/[ \t]{2,}/g, ' ')
-				.replace(/[ \t]+(\n|$)/g, '$1');
+				.replace(/[ \t]+\n/g, '\n');
 		});
+
+		// 문자열 끝의 공백은 조각이 아니라 전체를 기준으로 턴다. 조각 단위로 하면
+		// 조각의 끝이 곧 태그 앞이라 "Available from: <a>" 의 공백까지 지워진다.
+		return cleaned.replace(/[ \t]+$/, '');
 	},
 
 	copyCitation(window, { mode, styleID }) {
