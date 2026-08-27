@@ -1,4 +1,6 @@
-<vbox xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<vbox id="hangul-cite-prefpane"
+	onload="event.waitUntil(HangulCitePrefs.init())"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	xmlns:html="http://www.w3.org/1999/xhtml">
 
 	<groupbox>
@@ -22,6 +24,29 @@
 		<description class="tight">
 			한글은 받침을 정확히 계산하지만, 로마자 이름은 한국어 독음을 근사하므로
 			틀릴 수 있습니다. 결과가 어색하면 이 설정을 끄고 직접 고치세요.
+		</description>
+	</groupbox>
+
+	<groupbox>
+		<html:h2>국내 학회 스타일</html:h2>
+
+		<description class="tight">
+			국내 학회지 인용 양식이 플러그인에 함께 들어 있습니다. 설치하면
+			Zotero의 스타일 목록에 추가되어 다른 스타일처럼 쓸 수 있습니다.
+			이미 있는 것은 건너뛰므로 여러 번 눌러도 안전합니다.
+		</description>
+
+		<hbox align="center">
+			<button id="hangul-cite-install-styles"
+				label="국내 학회 스타일 설치"
+				native="true"/>
+			<label id="hangul-cite-styles-status" style="margin-inline-start: 8px;"/>
+		</hbox>
+
+		<description class="tight">
+			일부 스타일은 다른 스타일의 서식을 그대로 쓰는 종속 스타일이라,
+			필요한 부모 스타일도 함께 설치됩니다. 설치된 스타일을 지우려면
+			편집 → 환경설정 → 인용에서 제거하세요.
 		</description>
 	</groupbox>
 

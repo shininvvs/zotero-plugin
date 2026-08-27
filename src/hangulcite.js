@@ -6,7 +6,33 @@ HangulCite = {
 	addedElementIDs: [],
 
 	FALLBACK_STYLE: 'http://www.zotero.org/styles/apa',
+	STYLE_ID_PREFIX: 'http://www.zotero.org/styles/',
 	PREF_FIX_PARTICLES: 'hangulCite.fixParticles',
+
+	/**
+	 * 종속 스타일이 참조하는 부모 중 Zotero 기본 제공에 없는 것들.
+	 * 부모가 먼저 설치돼 있어야 종속 스타일 설치가 성공한다.
+	 */
+	PARENT_STYLES: [
+		'nlm-citation-sequence-superscript',
+		'springer-basic-author-date',
+		'springer-socpsych-author-date'
+	],
+
+	KOREAN_STYLES: [
+		'journal-of-korean-neurosurgical-society',
+		'journal-of-the-korean-society-of-civil-engineers',
+		'korean-journal-of-anesthesiology',
+		'korean-journal-of-radiology',
+		'the-korean-journal-of-gastroenterology',
+		'the-korean-journal-of-internal-medicine',
+		'the-korean-journal-of-mycology',
+		'journal-of-korean-medical-science',
+		'journal-of-the-korean-society-for-applied-biological-chemistry',
+		'journal-of-the-korean-statistical-society',
+		'korean-social-science-journal',
+		'the-korean-journal-of-pathology'
+	],
 
 	init({ id, version, rootURI }) {
 		if (this.initialized) return;
@@ -14,6 +40,9 @@ HangulCite = {
 		this.version = version;
 		this.rootURI = rootURI;
 		this.initialized = true;
+
+		// 환경설정 탭 스크립트에서 호출할 수 있도록 노출한다
+		Zotero.HangulCite = this;
 	},
 
 	log(msg) {
@@ -268,6 +297,61 @@ HangulCite = {
 			this.log(e);
 			this.notify(window, '오류가 발생했습니다: ' + e.message);
 		}
+	},
+
+	// --- Bundled styles ---------------------------------------------------
+
+	/** 번들된 국내 학회 스타일 중 이미 설치된 개수 */
+	countInstalledStyles() {
+		return this.KOREAN_STYLES
+			.filter(name => !!Zotero.Styles.get(this.STYLE_ID_PREFIX + name))
+			.length;
+	},
+
+	/**
+	 * 번들 파일을 읽는다. 플러그인이 .xpi 안에 들어 있으면 rootURI 가 jar: 스킴이라
+	 * XHR 기반 경로가 실패할 수 있어서 fetch 를 먼저 쓰고 안 되면 되돌아간다.
+	 */
+	async readBundledStyle(name) {
+		const url = this.rootURI + 'styles/' + name + '.csl';
+		try {
+			const response = await fetch(url);
+			if (!response.ok) throw new Error('HTTP ' + response.status);
+			return await response.text();
+		}
+		catch (e) {
+			this.log('fetch failed for ' + name + ', falling back: ' + e);
+			return Zotero.File.getContentsFromURLAsync(url);
+		}
+	},
+
+	/**
+	 * 번들된 스타일을 설치한다. 이미 있는 것은 건너뛰므로 여러 번 눌러도 안전하다.
+	 * 부모 스타일을 먼저 넣어야 종속 스타일이 부모를 찾을 수 있다.
+	 */
+	async installBundledStyles() {
+		const result = { installed: 0, skipped: 0, failed: [] };
+
+		for (const name of [...this.PARENT_STYLES, ...this.KOREAN_STYLES]) {
+			if (Zotero.Styles.get(this.STYLE_ID_PREFIX + name)) {
+				result.skipped++;
+				continue;
+			}
+
+			try {
+				const string = await this.readBundledStyle(name);
+				await Zotero.Styles.install({ string }, name, true);
+				result.installed++;
+			}
+			catch (e) {
+				this.log('style install failed: ' + name + ' - ' + e);
+				result.failed.push(name);
+			}
+		}
+
+		this.log(`bundled styles: ${result.installed} installed, `
+			+ `${result.skipped} skipped, ${result.failed.length} failed`);
+		return result;
 	},
 
 	notify(window, message) {

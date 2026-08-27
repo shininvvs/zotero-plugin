@@ -17,6 +17,7 @@ $items += Get-Item (Join-Path $root 'bootstrap.js')
 $items += Get-Item (Join-Path $root 'prefs.js')
 $items += Get-Item (Join-Path $root 'prefs.xhtml')
 $items += Get-ChildItem (Join-Path $root 'src') -Recurse -File
+$items += Get-ChildItem (Join-Path $root 'styles') -Recurse -File -Filter '*.csl'
 
 # Entry names are built by hand with forward slashes. Compress-Archive on Windows
 # PowerShell 5.1 writes backslashes, which Zotero fails to resolve at load time.

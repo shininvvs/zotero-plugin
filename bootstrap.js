@@ -18,7 +18,8 @@ async function startup({ id, version, rootURI }) {
 		pluginID: id,
 		src: rootURI + 'prefs.xhtml',
 		id: 'hangul-cite-prefs',
-		label: '한글 인용'
+		label: '한글 인용',
+		scripts: [rootURI + 'src/prefs-pane.js']
 	});
 }
 

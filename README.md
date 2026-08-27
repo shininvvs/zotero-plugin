@@ -63,8 +63,38 @@ Meng, Chutian, ... Yi Yang과 Yueting Zhuang. "LogiStory: ..."
 한 번만 다른 양식이 필요하면 환경설정을 건드리지 말고
 **우클릭 → 한글 인용 → 다른 스타일로 참고문헌 복사**를 쓰세요.
 
-국내 학회 양식은 [Zotero Style Repository](https://www.zotero.org/styles)에서
-`Korean`으로 검색해 설치한 뒤 위 설정에서 선택하면 됩니다.
+## 국내 학회 스타일
+
+국내 학회지 인용 양식 12종이 플러그인에 함께 들어 있습니다.
+**편집 → 환경설정 → 한글 인용 → 국내 학회 스타일 설치**를 누르면 Zotero의
+스타일 목록에 추가되어 다른 스타일처럼 쓸 수 있습니다. 이미 있는 것은
+건너뛰므로 여러 번 눌러도 안전합니다.
+
+| 스타일 |
+|---|
+| Journal of Korean Medical Science |
+| Journal of Korean Neurosurgical Society |
+| Journal of the Korean Society of Civil Engineers |
+| Journal of the Korean Society for Applied Biological Chemistry |
+| Journal of the Korean Statistical Society |
+| Korean Journal of Anesthesiology |
+| Korean Journal of Radiology |
+| Korean Social Science Journal |
+| The Korean Journal of Gastroenterology |
+| The Korean Journal of Internal Medicine |
+| The Korean Journal of Mycology |
+| The Korean Journal of Pathology |
+
+이 중 5종은 다른 스타일의 서식을 그대로 쓰고 이름만 다른 종속 스타일이라,
+필요한 부모 스타일 3종도 함께 설치됩니다. 자세한 대응 관계와 라이선스는
+[styles/NOTICE.md](styles/NOTICE.md)를 보세요.
+
+번들 파일은 [CSL 공식 저장소](https://github.com/citation-style-language/styles)에서
+가져온 것이며 **CC BY-SA 3.0** 라이선스를 따릅니다. 플러그인 본체의 MIT
+라이선스와는 별개입니다.
+
+목록에 없는 양식은 [Zotero Style Repository](https://www.zotero.org/styles)에서
+직접 검색해 설치하면 됩니다.
 
 ## 빌드
 
@@ -113,18 +143,24 @@ manifest.json          플러그인 메타데이터
 bootstrap.js           Zotero 진입점 (startup/shutdown)
 prefs.js               기본 설정값
 prefs.xhtml            환경설정 탭
-src/hangulcite.js      메뉴 등록 + 인용문 생성 + 클립보드
+src/hangulcite.js      메뉴 등록 + 인용문 생성 + 클립보드 + 스타일 설치
 src/particles.js       조사 교정 (독립 모듈)
+src/prefs-pane.js      환경설정 탭 동작
+styles/*.csl           번들 CSL 스타일 (CC BY-SA, 출처는 NOTICE.md)
 build.ps1              .xpi 패키징
 ```
 
 ## 앞으로
 
 - [ ] 한/글 COM 연동으로 커서 위치에 바로 삽입
-- [ ] 국내 학회 CSL 스타일 번들
+- [x] 국내 학회 CSL 스타일 번들
 - [ ] KCI / RISS 메타데이터 커넥터
 - [ ] 단축키 지원
 
 ## 라이선스
 
-MIT
+플러그인 코드는 MIT.
+
+`styles/` 아래 `.csl` 파일은 CSL 공식 저장소에서 가져온 것으로
+**CC BY-SA 3.0**을 따릅니다. 출처와 원 저작자 표기는
+[styles/NOTICE.md](styles/NOTICE.md)에 있습니다.
