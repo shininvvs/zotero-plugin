@@ -9,6 +9,10 @@ HangulCite = {
 	STYLE_ID_PREFIX: 'http://www.zotero.org/styles/',
 	PREF_FIX_PARTICLES: 'hangulCite.fixParticles',
 
+	get SHORTCUT_LABEL() {
+		return Zotero.isMac ? '⇧⌘H' : 'Ctrl+Shift+H';
+	},
+
 	/**
 	 * 종속 스타일이 참조하는 부모 중 Zotero 기본 제공에 없는 것들.
 	 * 부모가 먼저 설치돼 있어야 종속 스타일 설치가 성공한다.
@@ -80,8 +84,10 @@ HangulCite = {
 		const popup = doc.createXULElement('menupopup');
 		menu.appendChild(popup);
 
-		this.addMenuItem(doc, popup, 'hangul-cite-bib', '참고문헌 복사',
+		const bibItem = this.addMenuItem(doc, popup, 'hangul-cite-bib', '참고문헌 복사',
 			() => this.copyCitation(window, { mode: 'bibliography' }));
+		bibItem.setAttribute('acceltext', this.SHORTCUT_LABEL);
+
 		this.addMenuItem(doc, popup, 'hangul-cite-intext', '본문 인용 복사',
 			() => this.copyCitation(window, { mode: 'citation' }));
 
@@ -95,8 +101,36 @@ HangulCite = {
 		itemMenu.appendChild(menu);
 		this.trackElement(menu);
 
+		this.addShortcut(doc, window);
+
 		this.log('menu installed (particles: '
 			+ (typeof HangulCiteParticles === 'object' ? 'ok' : 'MISSING') + ')');
+	},
+
+	/**
+	 * 참고문헌 복사에 단축키를 단다.
+	 *
+	 * Zotero 는 자기 단축키를 prefs 로 관리할 뿐 플러그인용 등록 API 가 없어서
+	 * mainKeyset 에 직접 <key> 를 붙인다. accel+shift 조합에서 Zotero 가 이미
+	 * 쓰는 글자(S N O L K A C Y R ` ;)를 피해 H 를 쓴다.
+	 */
+	addShortcut(doc, window) {
+		const keyset = doc.getElementById('mainKeyset');
+		if (!keyset || doc.getElementById('hangul-cite-key')) return;
+
+		const key = doc.createXULElement('key');
+		key.id = 'hangul-cite-key';
+		key.setAttribute('key', 'H');
+		key.setAttribute('modifiers', 'accel shift');
+		key.addEventListener('command',
+			() => this.copyCitation(window, { mode: 'bibliography' }));
+
+		keyset.appendChild(key);
+		this.trackElement(key);
+
+		// Gecko 는 이미 만들어진 keyset 에 <key> 를 더해도 바로 듣지 않는다.
+		// 같은 자리에 다시 넣어 다시 읽게 한다.
+		keyset.parentNode.insertBefore(keyset, keyset.nextSibling);
 	},
 
 	addMenuItem(doc, popup, id, label, onCommand) {
@@ -173,7 +207,13 @@ HangulCite = {
 	 * 라벨은 Zotero 한국어 화면에 실제로 표시되는 이름을 쓴다.
 	 */
 	CONTAINER_FIELDS: {
-		conferencePaper: { field: 'proceedingsTitle', label: '의사록' },
+		conferencePaper: {
+			field: 'proceedingsTitle',
+			label: '의사록',
+			// OpenReview 나 arXiv 에서 가져오면 협의 명만 채워져 오는 일이 잦다.
+			// 둘은 엄연히 다른 칸이라 자동으로 옮기지 않고 물어본다.
+			fillFrom: { field: 'conferenceName', label: '협의 명' }
+		},
 		bookSection: { field: 'bookTitle', label: '책 제목' }
 	},
 
@@ -194,20 +234,47 @@ HangulCite = {
 	findEmptyFields(items) {
 		return items
 			.map((item) => {
-				const specs = [
-					this.CONTAINER_FIELDS[item.itemType],
-					...this.COMMON_FIELDS
-				].filter(Boolean);
+				const container = this.CONTAINER_FIELDS[item.itemType];
+				const specs = [container, ...this.COMMON_FIELDS].filter(Boolean);
 
 				const empty = specs
 					.filter(spec => !item.getField(spec.field))
 					.map(spec => spec.label);
 
-				return empty.length
-					? { title: item.getField('title') || '(제목 없음)', empty }
-					: null;
+				// 저자는 getField 로 읽히지 않아 따로 본다
+				if (!item.getCreators().length) {
+					empty.push('저자');
+				}
+
+				if (!empty.length) return null;
+
+				return {
+					item,
+					title: item.getField('title') || '(제목 없음)',
+					empty,
+					fill: this.findFillSource(item, container)
+				};
 			})
 			.filter(Boolean);
+	},
+
+	/**
+	 * 비어 있는 칸을 다른 칸의 값으로 채울 수 있는지 본다.
+	 * 채울 수 있어도 뜻이 완전히 같지는 않으므로 결정은 사용자가 한다.
+	 */
+	findFillSource(item, container) {
+		if (!container || !container.fillFrom) return null;
+		if (item.getField(container.field)) return null;
+
+		const value = item.getField(container.fillFrom.field);
+		if (!value) return null;
+
+		return {
+			field: container.field,
+			label: container.label,
+			from: container.fillFrom.label,
+			value
+		};
 	},
 
 	truncate(text, limit = 70) {
@@ -222,16 +289,47 @@ HangulCite = {
 	 */
 	warnEmptyFields(window, summary, entries) {
 		const list = entries
-			.map(({ title, empty }) =>
-				`• ${this.truncate(title, 60)}\n  빈 컬럼 : [${empty.join(', ')}]`)
+			.map(({ title, empty, fill }) =>
+				`• ${this.truncate(title, 60)}\n  빈 컬럼 : [${empty.join(', ')}]`
+				+ (fill ? `\n  ${fill.from}에서 가져올 수 있음` : ''))
 			.join('\n\n');
 
 		const subject = entries.length > 1 ? '아래 항목들은' : '아래 항목은';
-
-		Zotero.alert(window, '한글 인용',
-			summary + '\n\n'
+		const body = summary + '\n\n'
 			+ `${subject} 인용이 불완전합니다.\n\n`
-			+ list);
+			+ list;
+
+		const fillable = entries.filter(entry => entry.fill);
+		if (!fillable.length) {
+			Zotero.alert(window, '한글 인용', body);
+			return;
+		}
+
+		const ps = Services.prompt;
+		const flags = ps.BUTTON_POS_0 * ps.BUTTON_TITLE_IS_STRING
+			+ ps.BUTTON_POS_1 * ps.BUTTON_TITLE_CANCEL;
+
+		const labels = [...new Set(fillable.map(entry => entry.fill.label))].join(', ');
+		const choice = ps.confirmEx(window, '한글 인용',
+			`${body}\n\n${labels} 칸을 지금 채울까요?`,
+			flags, '채우기', null, null, null, {});
+
+		if (choice === 0) {
+			this.fillFields(window, fillable).catch((e) => {
+				this.log(e);
+				this.notify(window, '채우지 못했습니다: ' + e.message);
+			});
+		}
+	},
+
+	/** 대화상자에서 동의한 칸을 실제로 채운다. */
+	async fillFields(window, fillable) {
+		for (const { item, fill } of fillable) {
+			item.setField(fill.field, fill.value);
+			await item.saveTx();
+		}
+
+		this.notify(window, `${fillable.length}개 항목을 채웠습니다`);
 	},
 
 	/**
