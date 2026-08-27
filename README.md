@@ -13,7 +13,7 @@ Zotero는 Word와 LibreOffice만 지원하기 때문에, 한글 사용자는 참
 3. 우측 상단 톱니바퀴 → **Install Plugin From File...**
 4. 다운로드한 `.xpi` 선택
 
-> Zotero 7 이상. **Zotero 10.0.1에서 API 호환성을 확인했습니다.**
+> Zotero 10.0.1에서 설치·로드까지 확인했습니다.
 
 ## 사용법
 
@@ -59,6 +59,21 @@ Zotero를 개발 모드로 띄우면 플러그인 폴더를 직접 로드할 수
 3. Zotero 재시작.
 
 로그는 **도움말 → 디버그 출력 로깅**에서 확인할 수 있습니다.
+정상 로드되면 `Hangul Cite: menu installed` 줄이 찍힙니다.
+
+### manifest 주의사항
+
+Zotero 10은 `applications.zotero` 아래 세 필드를 **필수**로 검사합니다
+(`Extension.sys.mjs` `parseManifest`). 하나라도 없으면 "현재 Zotero 버전과
+호환되지 않습니다"라는 메시지와 함께 설치가 거부됩니다.
+
+- `id`
+- `update_url`
+- `strict_max_version`
+
+특히 `strict_max_version`은 생략할 수 없습니다. 버전 비교 로직 자체는
+미지정 시 `*`로 처리하지만, 그 이전 단계인 manifest 검증에서 걸립니다.
+따라서 Zotero가 메이저 업데이트될 때마다 이 값을 올려야 합니다.
 
 ## 구조
 
