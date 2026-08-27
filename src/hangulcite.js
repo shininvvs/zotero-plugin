@@ -300,6 +300,14 @@ HangulCite = {
 			+ list;
 
 		const fillable = entries.filter(entry => entry.fill);
+
+		// 채우기 버튼이 왜 떴는지 안 떴는지 나중에 따질 수 있게 남긴다
+		this.log('empty fields: ' + JSON.stringify(entries.map(e => ({
+			title: e.title.slice(0, 30),
+			empty: e.empty,
+			fillFrom: e.fill ? e.fill.from : null
+		}))));
+
 		if (!fillable.length) {
 			Zotero.alert(window, '한글 인용', body);
 			return;
